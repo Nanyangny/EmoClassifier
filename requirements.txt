@@ -1,0 +1,8 @@
+flask
+numpy
+transformers
+torch
+nltk
+pandas
+spacy
+networkx

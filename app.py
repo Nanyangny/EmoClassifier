@@ -1,14 +1,11 @@
 import numpy as np
 from flask import Flask, render_template,request,flash,redirect,jsonify,url_for
-from werkzeug.utils import secure_filename
-
 from transformers import BertTokenizer, BertForMaskedLM
 import torch
 import string
 from collections import defaultdict
 import nltk
 from nltk.corpus import stopwords
-import numpy as np
 import datetime
 import time 
 import spacy
@@ -23,21 +20,37 @@ from bert_predict import key_word_predict_with_network_from_sent,emo_predict
 
 app = Flask(__name__)
 # model = pickle.load(open('model.pkl', 'rb'))
-
 try:
     nlp = spacy.load("en_core_web_sm")
 except:
     os.system('cmd /c "python -m spacy download en_core_web_sm"')
     nlp = spacy.load("en_core_web_sm")
 
-# stop_words = set(stopwords.words('english')) 
+
+
+########################################################################
+"""
+Input required
+"""
+
+## The Gelphi output file to construct the network
 Gelphi_output_file_path = "./src/Gelphi_output_updated.csv" 
+## trained model from the annotated dataset (can refer to the previous notebook repo link for training details)
 emo_prediction_model_path = './src/emo-prediction_rft_model'
+## edge list to construct the network (one of the input files for Gelphi)
 edge_list_path = "./src/second_iteration_edge_list_updated.csv"
-node_list_path = "./src/second_iteration_nodes_updated.csv"
-top_k_words_in_cluster = 5 
+
+
+### parameters for the clustering algo
+
+# how many prediction from BERT masked prediction model
 top_k_bert_prediction = 5
-top_k_clustering = 3
+# how many words within the labelled cluster to represent the cluster in the cluster assignment
+top_k_words_in_cluster = 5 
+# how many cluster to be displayed in the webapp frontend
+top_k_clustering_display = 3
+
+########################################################################
 
 
 
@@ -47,7 +60,6 @@ network.set_index(network['Label'],inplace=True)
 
 ### constructing network using networkx for emo assignment
 edge_list = pd.read_csv(edge_list_path)
-# node_list = pd.read_csv(node_list_path)
 Graphtype = nx.Graph()
 syn_G = nx.from_pandas_edgelist(edge_list, edge_attr='weight', create_using=Graphtype)
 
@@ -64,14 +76,12 @@ selected_top_dic = selected_top.groupby('modularity_class')['Label'].agg(list).t
 modularity_class = selected_top['modularity_class'].unique()
 
 
+# bert model loading 
+## there are other options as well (cased | uncased) refer to https://huggingface.co/transformers/model_doc/bert.html
 
 bert_tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 bert_model = BertForMaskedLM.from_pretrained('bert-base-uncased').eval()
 
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
 def test():
@@ -82,7 +92,6 @@ def test():
 @app.route('/predict',methods=['GET','POST'])
 def predict():
     #For rendering results on HTML GUI
-    # int_features = [x for x in request.form.values()]
     ## for GET Method 
     input_text = request.form['input_text']
     ## for POST Method
@@ -98,7 +107,7 @@ def predict():
         input_text_array = input_text.split(' ')
         for input_item in input_text_array:
                 if emo_pred_words and input_item.startswith(emo_pred_words[0].split('_')[0]):
-                    output_html_array.append("<span class='emo badge bg-secondary'>{}<span class='tooltiptext'>{}</span></span>".format(input_item,emo_pred_res[emo_pred_words[0]][:top_k_clustering]))
+                    output_html_array.append("<span class='emo badge bg-secondary'>{}<span class='tooltiptext'>{}</span></span>".format(input_item,emo_pred_res[emo_pred_words[0]][:top_k_clustering_display]))
                     emo_pred_words.pop(0)
                 else:
                     output_html_array.append(input_item)
@@ -108,25 +117,6 @@ def predict():
         return render_template('home.html', prediction_text='Results: {}'.format(input_text))
 
    
-
-
-
-@app.route('/count')
-def index_count():
-    return render_template('count.html')
-
-
-@app.route("/<any(plain, jquery, fetch):js>")
-def index(js):
-    return render_template("{0}.html".format(js), js=js)
-
-
-@app.route("/add", methods=["POST"])
-def add():
-    a = request.form.get("a", 0, type=float)
-    b = request.form.get("b", 0, type=float)
-    return jsonify(result=a + b)
-
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -13,7 +13,6 @@ import pandas as pd
 import re
 import random
 from scipy.special import softmax
-# from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
@@ -22,15 +21,11 @@ from sklearn.linear_model import LogisticRegression
 from networkx.algorithms.shortest_paths.generic import shortest_path_length as spl
 
 
-# nlp = spacy.load("en_core_web_sm")
 stop_words = set(stopwords.words('english')) 
 
 
-# bert_tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-# bert_model = BertForMaskedLM.from_pretrained('bert-base-uncased').eval()
-
-### Get the predicted words from  BERT model
 def decode(tokenizer=None, pred_idx=None, top_clean=5):
+    ### Get the predicted words from  BERT model
     ignore_tokens = string.punctuation + '[PAD]'
     tokens = []
     for w in pred_idx:
@@ -39,8 +34,9 @@ def decode(tokenizer=None, pred_idx=None, top_clean=5):
             tokens.append(token.replace('##', ''))
     return tokens[:top_clean]  ## each line one prediction
 
-### Encode the words by BERT tokenizers
+
 def encode(tokenizer=None, text_sentence='', add_special_tokens=True):
+    ### Encode the words by BERT tokenizers
     text_sentence = text_sentence.replace('<mask>', tokenizer.mask_token)
     # if <mask> is the last token, append a "." so that models dont predict punctuation.
     if tokenizer.mask_token == text_sentence.split()[-1]:
@@ -58,12 +54,13 @@ def get_predictions(model=None,text_sentence='',top_clean=5,tokenizer=None):
     return bert
 
 
-"""
-Text pre-processing functions
-To split those cut words with come with punctuation e.g. "like.", ". enable"
-"""
+
 
 def punctuation_corr(input_sent):
+    """
+    Text pre-processing functions
+    To split those cut words with come with punctuation e.g. "like.", ". enable"
+    """
     ## correct punctuation position
     input_split = input_sent.split()
     for i in range(len(input_split)):
@@ -98,17 +95,18 @@ def punctuation_corr(input_sent):
 
 
 
-"""
-Based on the cleaned text, mask out interested words for BERT prediction and get the BERT prediction
-Two ways to split the sentence, by Spacy or NLTk (Spacy is more advanced and time-consuming)
 
-input_sent (string): the corpus for prediction
-top_k (int): number of prediction get from BERT model for each masked word 
-useSpacy (boolean): whether the use of Spacy to split words and pos tagging
-stop_words (array)
-"""
 
 def find_masked_words(input_sent='',top_k=5, useSpacy=True,stop_words=None,spacy_model=None,pred_model=None,tokenizer=None):
+    """
+    Based on the cleaned text, mask out interested words for BERT prediction and get the BERT prediction
+    Two ways to split the sentence, by Spacy or NLTk (Spacy is more advanced and time-consuming)
+
+    input_sent (string): the corpus for prediction
+    top_k (int): number of prediction get from BERT model for each masked word 
+    useSpacy (boolean): whether the use of Spacy to split words and pos tagging
+    stop_words (array)
+    """
     keyword = defaultdict(dict)
     if not useSpacy:
         input_sent = punctuation_corr(input_sent)
@@ -171,11 +169,9 @@ def find_masked_words(input_sent='',top_k=5, useSpacy=True,stop_words=None,spacy
     return keyword
 
 
-# network = pd.read_csv(Gelphi_output_file_path)
-# network.set_index(network['Label'],inplace=True)
 
 """
-Auxilary functions to find out the prediction from BERT model, change top_k_choic
+Auxilary functions to find out the prediction from BERT model, change top_k_choice
 
 """
 
@@ -214,8 +210,9 @@ def key_word_predict_with_network_from_sent(input_sent=None,top_k=None, filter_N
     res_out['pred_class'] = res_out.apply(lambda row: pred_score(match_col="modularity_class",pred_out=row,network=network_input),axis=1)
     return res_out
 
-## calculate average auth score from the BERT predicted words
+
 def cal_avg_pred_score(row):
+    ## calculate average auth score from the BERT predicted words
     count = 0
     sum_ = 0
     for item in row:
@@ -272,10 +269,11 @@ def emo_predict(model_file_dir='./emo-prediction_rft_model',bert_output ='',top_
     return res
 
 
-"""
-    output softmax function value for the probability of the emotion based on the score 
-"""
+
 def emo_distribution_cal(top_cluster_word_dict = dict(),source=None,network_Graph=None,row=None,mod_class=[]):
+    """
+    output softmax function value for the probability of the emotion based on the score 
+    """
     emo_score_dist = []
     if row['emo?']:
         source=row['word'].split('_')[0]
