@@ -2,7 +2,15 @@
 A WebApp demo that shows the power of Graph Network and BERT Model in sentiment analysis.
 
 
-For full documentation on the project, can refer to the [master project repo](https://github.com/Nanyangny/SYN-MLDA_Sentiment-Analysis)
+<img src="Screenshot.png"/>
+
+For full documentation on the project, can refer to the [master project repo.](https://github.com/Nanyangny/SYN-MLDA_Sentiment-Analysis)
+
+## Flowchart
+
+<img src="Flowchart.png"/>
+
+
 
 
 ## Instruction to run the webapp demo
