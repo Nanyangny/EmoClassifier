@@ -19,11 +19,9 @@ import networkx as nx
 from bert_predict import key_word_predict_with_network_from_sent,emo_predict
 
 
-# UPLOAD_FOLDER = './upload/'
-# ALLOWED_EXTENSIONS = {'csv','xlsx'}
+
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # model = pickle.load(open('model.pkl', 'rb'))
 
 try:
